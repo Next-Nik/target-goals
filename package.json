@@ -1,0 +1,7 @@
+{
+  "name": "life-os-target-goals",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": "18.x" },
+  "dependencies": { "@anthropic-ai/sdk": "^0.20.0" }
+}
