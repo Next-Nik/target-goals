@@ -312,7 +312,7 @@ const App = {
           <div class="goal-card-domain">${dl?.label || d.domain} ✓</div>
           <div class="goal-card-outcome">${d.outcome_user || d.outcome_system}</div>
           ${d.outcome_user && d.outcome_user !== d.outcome_system
-            ? `<div class="edit-toggle" style="font-size:13px;color:var(--meta);margin-top:6px;">AI suggested: "${d.outcome_system}"</div>`
+            ? `<div class="edit-toggle" style="font-size:12px;color:var(--meta);margin-top:6px;">AI suggested: "${d.outcome_system}"</div>`
             : ''}
         </div>`;
     }).join('');
