@@ -11,7 +11,28 @@
     window.SUPABASE_URL      = "https://tphbpwzozkskytoichho.supabase.co";
     window.SUPABASE_ANON_KEY = "sb_publishable_M00GF1FWV5tgKHqmyRCZag_kJjgBJn-";
   </script>
-  <script src="/auth-guard.js"></script>
+  <script src="/auth-init.js"></script>
+  <script>
+    // Pattern A — redirect to login if no session
+    window.addEventListener('lifeos:auth', function(e) {
+      var user = e.detail && e.detail.user;
+      var dot = document.getElementById('nk-profile-dot');
+      if (user) {
+        window.LIFEOS_USER    = user;
+        window.LIFEOS_USER_ID = user.id;
+        if (dot) {
+          var initial = ((user.email||'').split('@')[0].charAt(0)||'?').toUpperCase();
+          dot.textContent = initial;
+          dot.href = 'https://nextus.world/profile.html';
+          dot.title = 'Your profile';
+          dot.style.display = 'flex';
+        }
+      } else {
+        var returnUrl = encodeURIComponent(window.location.href);
+        window.location.href = 'https://nextus.world/login.html?redirect=' + returnUrl;
+      }
+    }, { once: true });
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -24,7 +45,7 @@
       --gold-bg:     rgba(200,146,42,0.05);
       --gold-hover:  rgba(200,146,42,0.08);
       --dark:        #0F1523;
-      --meta:        rgba(15,21,35,0.55);
+      --meta:        rgba(15,21,35,0.78);
       --ghost:       rgba(15,21,35,0.28);
       --serif:       'Cormorant Garamond', Georgia, serif;
       --sc:          'Cormorant SC', Georgia, serif;
@@ -55,14 +76,14 @@
       text-decoration: none;
     }
     .nav-eyebrow {
-      font-family: var(--sc); font-size: 11px;
+      font-family: var(--sc); font-size: 13px;
       letter-spacing: 0.14em; color: var(--meta);
     }
 
     /* ── LAYOUT ── */
     .page {
       max-width: 680px; margin: 0 auto;
-      padding: 56px 40px 80px;
+      padding: 120px 40px 120px;
     }
 
     /* ── PHASE INDICATOR ── */
@@ -72,7 +93,7 @@
     }
     .phase-dot {
       display: flex; align-items: center; gap: 8px;
-      font-family: var(--sc); font-size: 11px;
+      font-family: var(--sc); font-size: 13px;
       letter-spacing: 0.12em; color: var(--ghost);
       transition: color 0.3s;
     }
@@ -82,7 +103,7 @@
       width: 20px; height: 20px; border-radius: 50%;
       border: 1.5px solid var(--gold-rule);
       display: flex; align-items: center; justify-content: center;
-      font-size: 9px; transition: all 0.3s;
+      font-size: 13px; transition: all 0.3s;
     }
     .phase-dot.active .phase-dot-circle {
       border-color: var(--gold-border);
@@ -148,7 +169,7 @@
     .domain-card.selected::after {
       content: '✓';
       position: absolute; top: 12px; right: 14px;
-      font-family: var(--sc); font-size: 11px;
+      font-family: var(--sc); font-size: 13px;
       color: var(--gold);
     }
     .domain-card.disabled {
@@ -175,7 +196,7 @@
       transition: width 0.8s ease;
     }
     .domain-score-label {
-      font-family: var(--sc); font-size: 9px;
+      font-family: var(--sc); font-size: 13px;
       letter-spacing: 0.10em; color: var(--meta);
       margin-top: 4px;
     }
@@ -246,7 +267,7 @@
       animation: fadeUp 0.3s ease;
     }
     .msg-system {
-      font-family: var(--sc); font-size: 11px;
+      font-family: var(--sc); font-size: 13px;
       letter-spacing: 0.14em; color: var(--gold);
       text-align: center; padding: 8px 0;
       animation: fadeUp 0.3s ease;
@@ -274,38 +295,41 @@
       40% { transform: translateY(-4px); opacity: 1; }
     }
 
-    /* ── INPUT — inline, not fixed ── */
-    .inline-input-wrap {
-      margin-top: 24px;
-      border: 1.5px solid var(--gold-border);
-      border-radius: 14px;
-      background: var(--white);
-      overflow: hidden;
+    /* ── INPUT ── */
+    .input-area {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(250,250,247,0.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--gold-rule);
+      padding: 16px 40px 24px;
+      z-index: 50;
+    }
+    .input-inner {
+      max-width: 680px; margin: 0 auto;
+      display: flex; gap: 10px; align-items: flex-end;
     }
     .input-field {
-      width: 100%; padding: 18px 20px;
+      flex: 1; padding: 14px 18px;
       font-family: var(--serif); font-size: 16px;
       font-weight: 300; color: var(--dark);
-      background: transparent;
-      border: none; outline: none; resize: none;
-      min-height: 80px; max-height: 220px;
-      line-height: 1.7;
+      background: var(--white);
+      border: 1.5px solid var(--gold-border);
+      border-radius: 14px;
+      outline: none; resize: none;
+      min-height: 52px; max-height: 140px;
+      line-height: 1.6;
+      transition: border-color 0.2s;
     }
+    .input-field:focus { border-color: var(--gold); }
     .input-field::placeholder { color: var(--ghost); font-style: italic; }
-    .inline-input-actions {
-      display: flex; justify-content: flex-end;
-      padding: 10px 16px;
-      border-top: 1px solid var(--gold-rule);
-      background: rgba(200,146,42,0.02);
-    }
     .send-btn {
-      padding: 12px 28px; border-radius: 40px;
+      padding: 14px 24px; border-radius: 40px;
       border: 1.5px solid var(--gold-border);
       background: var(--gold-bg); color: var(--gold);
       font-family: var(--sc); font-size: 13px;
       font-weight: 600; letter-spacing: 0.14em;
       cursor: pointer; transition: all 0.2s;
-      white-space: nowrap;
+      white-space: nowrap; flex-shrink: 0;
     }
     .send-btn:hover {
       transform: translateY(-2px);
@@ -341,7 +365,7 @@
       background: var(--gold-bg); margin-bottom: 20px;
     }
     .goal-card-domain {
-      font-family: var(--sc); font-size: 11px;
+      font-family: var(--sc); font-size: 13px;
       font-weight: 600; letter-spacing: 0.18em;
       color: var(--gold); margin-bottom: 10px;
     }
@@ -357,7 +381,7 @@
       display: flex; gap: 12px; align-items: baseline;
     }
     .milestone-label {
-      font-family: var(--sc); font-size: 9px;
+      font-family: var(--sc); font-size: 13px;
       letter-spacing: 0.12em; color: var(--meta);
       flex-shrink: 0; width: 60px;
     }
@@ -370,19 +394,19 @@
     /* ── TEA ANCHORS ── */
     .tea-section { margin-top: 20px; }
     .tea-label {
-      font-family: var(--sc); font-size: 11px;
+      font-family: var(--sc); font-size: 13px;
       font-weight: 600; letter-spacing: 0.18em;
       color: var(--meta); margin-bottom: 10px;
       display: block;
     }
     .tea-anchor {
-      padding: 12px 16px; border-radius: 10px;
+      padding: 12px 16px; border-radius: 14px;
       border: 1.5px solid var(--gold-rule);
       background: var(--white); margin-bottom: 8px;
       display: flex; gap: 10px; align-items: baseline;
     }
     .tea-type {
-      font-family: var(--sc); font-size: 9px;
+      font-family: var(--sc); font-size: 13px;
       letter-spacing: 0.12em; color: var(--gold);
       flex-shrink: 0; width: 72px;
     }
@@ -406,7 +430,7 @@
       font-weight: 300; color: var(--dark);
       background: var(--white);
       border: 1.5px solid var(--gold-border);
-      border-radius: 10px; padding: 12px 16px;
+      border-radius: 14px; padding: 12px 16px;
       outline: none; resize: vertical;
       line-height: 1.65;
     }
@@ -427,7 +451,7 @@
     .self-rate-grid { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
     .self-rate-row { display: flex; flex-direction: column; gap: 6px; }
     .self-rate-label {
-      font-family: var(--sc); font-size: 12px;
+      font-family: var(--sc); font-size: 13px;
       letter-spacing: 0.12em; color: var(--dark);
     }
     .self-rate-question {
@@ -439,10 +463,10 @@
     }
     .rate-btn {
       flex: 1; padding: 8px 0;
-      font-family: var(--sc); font-size: 10px;
-      border: 1px solid var(--gold-rule);
+      font-family: var(--sc); font-size: 13px;
+      border: 1.5px solid var(--gold-rule);
       background: var(--white); color: var(--meta);
-      cursor: pointer; border-radius: 6px;
+      cursor: pointer; border-radius: 14px;
       transition: all 0.15s;
     }
     .rate-btn.selected {
@@ -470,16 +494,39 @@
       position: fixed; bottom: 100px; right: 24px;
       padding: 10px 18px; background: var(--dark);
       color: var(--white); font-family: var(--sc);
-      font-size: 11px; letter-spacing: 0.12em;
+      font-size: 13px; letter-spacing: 0.12em;
       border-radius: 40px; z-index: 200;
       opacity: 0; transform: translateY(8px);
       transition: all 0.3s; pointer-events: none;
     }
     .save-toast.visible { opacity: 1; transform: translateY(0); }
 
+
+    /* ── SITE NAV ── */
+    .nk-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,146,42,0.20);}
+    .nk-nav-inner{max-width:1040px;margin:0 auto;padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;}
+    .nk-nav-logo img{height:34px;width:auto;display:block;}
+    .nk-nav-links{display:flex;align-items:center;gap:28px;}
+    .nk-nav-links a{font-family:'Cormorant SC',Georgia,serif;font-size:13px;letter-spacing:0.10em;color:rgba(15,21,35,0.78);text-decoration:none;transition:color 0.2s;}
+    .nk-nav-links a:hover{color:#0F1523;}
+    .nk-nav-links a.active{color:#C8922A;}
+    .nk-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px;}
+    .nk-hamburger span{display:block;width:22px;height:1.5px;background:rgba(15,21,35,0.78);border-radius:1px;}
+    .nk-mobile-menu{display:none;flex-direction:column;background:#FFF;border-bottom:1px solid rgba(200,146,42,0.20);padding:8px 0;}
+    .nk-mobile-menu.open{display:flex;}
+    .nk-mobile-menu a{font-family:'Cormorant SC',Georgia,serif;font-size:13px;letter-spacing:0.10em;color:#0F1523;text-decoration:none;padding:14px 32px;border-bottom:1px solid rgba(200,146,42,0.08);}
+    .nk-profile-dot{width:32px;height:32px;border-radius:50%;background:rgba(200,146,42,0.05);border:1.5px solid rgba(200,146,42,0.78);display:flex;align-items:center;justify-content:center;font-family:'Cormorant SC',Georgia,serif;font-size:13px;font-weight:600;color:#C8922A;text-decoration:none;flex-shrink:0;transition:all 0.2s;}
+    .nk-profile-dot:hover{background:rgba(200,146,42,0.08);border-color:rgba(200,146,42,1);transform:translateY(-1px);}
+    body{padding-top:64px;}
+    @media(max-width:640px){.nk-nav-inner{padding:0 24px;}.nk-nav-links{display:none;}.nk-hamburger{display:flex;}}
+
+    /* ── INLINE INPUT WRAP ── */
+    .inline-input-wrap{margin-top:24px;border:1.5px solid var(--gold-border);border-radius:14px;background:var(--white);overflow:hidden;}
+    .inline-input-actions{display:flex;justify-content:flex-end;padding:10px 16px;border-top:1px solid var(--gold-rule);background:rgba(200,146,42,0.02);}
+
     @media (max-width: 640px) {
       .nav { padding: 0 20px; }
-      .page { padding: 40px 20px 60px; }
+      .page { padding: 40px 20px 100px; }
       .input-area { padding: 12px 20px 20px; }
       .domain-grid { grid-template-columns: 1fr; }
       .quarter-options { grid-template-columns: 1fr; }
@@ -488,10 +535,30 @@
 </head>
 <body>
 
-<nav class="nav">
-  <a class="nav-logo" href="https://nextus.world">NextUs</a>
-  <span class="nav-eyebrow">Life OS · Target Goals</span>
+<nav class="nk-nav">
+  <div class="nk-nav-inner">
+    <a href="https://nextus.world/index.html" class="nk-nav-logo"><img src="https://nextus.world/logo_nav.png" alt="NextUs"></a>
+    <div class="nk-nav-links">
+      <a href="https://nextus.world/index.html">Home</a>
+      <a href="https://nextus.world/life-os.html" class="active">Life OS</a>
+      <a href="https://nextus.world/nextus.html">NextUs</a>
+      <a href="https://nextus.world/work-with-nik.html">Work with Nik</a>
+      <a href="https://nextus.world/about.html">About</a>
+      <a href="https://nextus.world/podcast.html">Podcast</a>
+    </div>
+    <a href="https://nextus.world/login.html" class="nk-profile-dot" id="nk-profile-dot" title="Sign in" style="display:none;">→</a>
+    <button class="nk-hamburger" aria-label="Menu" onclick="this.classList.toggle('open');document.getElementById('nk-mob-tg').classList.toggle('open');"><span></span><span></span><span></span></button>
+  </div>
 </nav>
+<div id="nk-mob-tg" class="nk-mobile-menu">
+  <a href="https://nextus.world/index.html">Home</a>
+  <a href="https://nextus.world/life-os.html">Life OS</a>
+  <a href="https://nextus.world/nextus.html">NextUs</a>
+  <a href="https://nextus.world/work-with-nik.html">Work with Nik</a>
+  <a href="https://nextus.world/about.html">About</a>
+  <a href="https://nextus.world/podcast.html">Podcast</a>
+  <a href="https://nextus.world/login.html">Sign in →</a>
+</div>
 
 <div class="save-toast" id="saveToast">Saved</div>
 
