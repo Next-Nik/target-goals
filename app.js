@@ -272,8 +272,6 @@ const App = {
           this.endDateLabel = this._calLabel;
         }
         this.render();
-        this.bindQuarter();
-        document.getElementById('toRefineBtn').disabled = false;
       });
     });
     document.getElementById('toRefineBtn')?.addEventListener('click', () => {
@@ -364,7 +362,6 @@ const App = {
     this.messages = [];
     this.isWaiting = true;
     this.render();
-    this.bindRefine();
 
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -388,7 +385,6 @@ const App = {
     }
 
     this.render();
-    this.bindRefine();
     this.scrollChat();
   },
 
@@ -396,7 +392,6 @@ const App = {
     this.messages.push({ role: 'user', content: text });
     this.isWaiting = true;
     this.render();
-    this.bindRefine();
     this.scrollChat();
 
     const domainId = this.selectedDomains[this.currentDomainIndex];
@@ -431,7 +426,6 @@ const App = {
     } else if (data.message) {
       this.messages.push({ role: 'assistant', content: data.message });
       this.render();
-      this.bindRefine();
       this.scrollChat();
     }
   },
