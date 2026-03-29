@@ -94,7 +94,7 @@
     .phase-dot {
       display: flex; align-items: center; gap: 8px;
       font-family: var(--sc); font-size: 13px;
-      letter-spacing: 0.12em; color: var(--ghost);
+      letter-spacing: 0.12em; color: var(--meta);
       transition: color 0.3s;
     }
     .phase-dot.active { color: var(--gold); }
@@ -321,7 +321,7 @@
       transition: border-color 0.2s;
     }
     .input-field:focus { border-color: var(--gold); }
-    .input-field::placeholder { color: var(--ghost); font-style: italic; }
+    .input-field::placeholder { color: rgba(15,21,35,0.55); font-style: normal; }
     .send-btn {
       padding: 14px 24px; border-radius: 40px;
       border: 1.5px solid var(--gold-border);
@@ -436,7 +436,7 @@
     }
     .edit-hint {
       font-family: var(--serif); font-size: 13px;
-      font-style: italic; color: var(--ghost);
+      font-style: normal; color: var(--meta);
       margin-top: 6px;
     }
     .edit-toggle {
