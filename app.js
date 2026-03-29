@@ -319,15 +319,14 @@ const App = {
       <h2>Let's build your ${domainLabel} goal.</h2>
       <div class="rule"></div>
       <div class="chat-area" id="chatArea">${msgs}${typing}</div>
-      <div style="height:120px;"></div>
-      <div class="input-area">
-        <div class="input-inner">
-          <textarea class="input-field" id="userInput"
-            placeholder="Type your response..."
-            rows="1"
-            ${this.isWaiting ? 'disabled' : ''}
-          ></textarea>
-          <button class="send-btn" id="sendBtn" ${this.isWaiting ? 'disabled' : ''}>Send</button>
+      <div class="inline-input-wrap">
+        <textarea class="input-field" id="userInput"
+          placeholder="Write your response here..."
+          rows="3"
+          ${this.isWaiting ? 'disabled' : ''}
+        ></textarea>
+        <div class="inline-input-actions">
+          <button class="send-btn" id="sendBtn" ${this.isWaiting ? 'disabled' : ''}>Send →</button>
         </div>
       </div>`;
   },
@@ -363,25 +362,32 @@ const App = {
     this.isWaiting = true;
     this.render();
 
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'refine',
-        domain: domainId,
-        domainScore: domainData?.placement || null,
-        currentScore: score,
-        targetDate: this.endDateLabel,
-        messages: [{ role: 'user', content: 'BEGIN' }],
-        completedDomains: this.completedDomains
-      })
-    });
-
-    const data = await res.json();
-    this.isWaiting = false;
-
-    if (data.message) {
-      this.messages = [{ role: 'assistant', content: data.message }];
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'refine',
+          domain: domainId,
+          domainScore: domainData?.placement || null,
+          currentScore: score,
+          targetDate: this.endDateLabel,
+          messages: [{ role: 'user', content: 'START' }],
+          completedDomains: this.completedDomains
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      const data = await res.json();
+      this.isWaiting = false;
+      if (data.message) {
+        this.messages = [{ role: 'assistant', content: data.message }];
+      }
+    } catch (e) {
+      this.isWaiting = false;
+      this.messages = [{ role: 'assistant', content: "Something went wrong reaching the server. Please refresh and try again." }];
     }
 
     this.render();
@@ -403,21 +409,33 @@ const App = {
       .filter(m => m.role === 'user' || m.role === 'assistant')
       .map(m => ({ role: m.role, content: m.content }));
 
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'refine',
-        domain: domainId,
-        domainScore: domainData?.placement || null,
-        currentScore: score,
-        targetDate: this.endDateLabel,
-        messages: apiMessages,
-        completedDomains: this.completedDomains
-      })
-    });
-
-    const data = await res.json();
+    let data;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'refine',
+          domain: domainId,
+          domainScore: domainData?.placement || null,
+          currentScore: score,
+          targetDate: this.endDateLabel,
+          messages: apiMessages,
+          completedDomains: this.completedDomains
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      data = await res.json();
+    } catch (e) {
+      this.isWaiting = false;
+      this.messages.push({ role: 'assistant', content: "Something went wrong. Please try sending that again." });
+      this.render();
+      this.scrollChat();
+      return;
+    }
     this.isWaiting = false;
 
     if (data.complete && data.data) {

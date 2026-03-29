@@ -130,11 +130,18 @@ module.exports = async (req, res) => {
         targetDate, completedDomains || []
       );
 
+      // Replace the START trigger with a proper opening prompt
+      const apiMessages = (messages || []).map(m =>
+        m.content === 'START'
+          ? { role: 'user', content: `I'm ready to work on my ${DOMAINS[domain]?.label || domain} goal for the next quarter.` }
+          : m
+      );
+
       const response = await anthropic.messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1000,
         system,
-        messages: messages || []
+        messages: apiMessages
       });
 
       const text = response.content[0].text;

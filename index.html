@@ -62,7 +62,7 @@
     /* ── LAYOUT ── */
     .page {
       max-width: 680px; margin: 0 auto;
-      padding: 56px 40px 120px;
+      padding: 56px 40px 80px;
     }
 
     /* ── PHASE INDICATOR ── */
@@ -274,41 +274,38 @@
       40% { transform: translateY(-4px); opacity: 1; }
     }
 
-    /* ── INPUT ── */
-    .input-area {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: rgba(250,250,247,0.96);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid var(--gold-rule);
-      padding: 16px 40px 24px;
-      z-index: 50;
-    }
-    .input-inner {
-      max-width: 680px; margin: 0 auto;
-      display: flex; gap: 10px; align-items: flex-end;
-    }
-    .input-field {
-      flex: 1; padding: 14px 18px;
-      font-family: var(--serif); font-size: 16px;
-      font-weight: 300; color: var(--dark);
-      background: var(--white);
+    /* ── INPUT — inline, not fixed ── */
+    .inline-input-wrap {
+      margin-top: 24px;
       border: 1.5px solid var(--gold-border);
       border-radius: 14px;
-      outline: none; resize: none;
-      min-height: 52px; max-height: 140px;
-      line-height: 1.6;
-      transition: border-color 0.2s;
+      background: var(--white);
+      overflow: hidden;
     }
-    .input-field:focus { border-color: var(--gold); }
+    .input-field {
+      width: 100%; padding: 18px 20px;
+      font-family: var(--serif); font-size: 16px;
+      font-weight: 300; color: var(--dark);
+      background: transparent;
+      border: none; outline: none; resize: none;
+      min-height: 80px; max-height: 220px;
+      line-height: 1.7;
+    }
     .input-field::placeholder { color: var(--ghost); font-style: italic; }
+    .inline-input-actions {
+      display: flex; justify-content: flex-end;
+      padding: 10px 16px;
+      border-top: 1px solid var(--gold-rule);
+      background: rgba(200,146,42,0.02);
+    }
     .send-btn {
-      padding: 14px 24px; border-radius: 40px;
+      padding: 12px 28px; border-radius: 40px;
       border: 1.5px solid var(--gold-border);
       background: var(--gold-bg); color: var(--gold);
       font-family: var(--sc); font-size: 13px;
       font-weight: 600; letter-spacing: 0.14em;
       cursor: pointer; transition: all 0.2s;
-      white-space: nowrap; flex-shrink: 0;
+      white-space: nowrap;
     }
     .send-btn:hover {
       transform: translateY(-2px);
@@ -482,7 +479,7 @@
 
     @media (max-width: 640px) {
       .nav { padding: 0 20px; }
-      .page { padding: 40px 20px 100px; }
+      .page { padding: 40px 20px 60px; }
       .input-area { padding: 12px 20px 20px; }
       .domain-grid { grid-template-columns: 1fr; }
       .quarter-options { grid-template-columns: 1fr; }
