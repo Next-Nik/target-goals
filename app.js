@@ -206,8 +206,6 @@ const App = {
           this.selectedDomains.push(id);
         }
         this.render();
-        // Re-run getRecommendation only if we have the data already
-        if (this.recommendation) this.bindSelect();
       });
     });
     document.getElementById('toQuarterBtn')?.addEventListener('click', () => {
@@ -258,7 +256,7 @@ const App = {
         </div>
       </div>
       <button class="btn" id="toRefineBtn" ${this.quarterType ? '' : 'disabled'}>
-        Start building my goals →
+        Set my targets →
       </button>`;
   },
 
@@ -537,7 +535,7 @@ const App = {
       </div>
       ${goals}
       <div style="text-align:center;margin-top:40px;">
-        <a href="https://nextus.world/profile" class="btn">Go to your profile →</a>
+        <a href="https://nextus.world/profile.html" class="btn">Go to your profile →</a>
       </div>`;
   },
 
