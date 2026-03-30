@@ -960,20 +960,5 @@ const App = {
   }
 };
 
-// Wait for auth-init.js to resolve before starting the app.
-// This prevents a race condition where App.init() fires before the
-// session check completes, causing a blank screen on load.
-document.addEventListener('DOMContentLoaded', () => {
-  window.addEventListener('lifeos:auth', (e) => {
-    App.userId = e.detail?.user?.id || null;
-    App.init();
-  }, { once: true });
-
-  // Safety fallback — if lifeos:auth never fires (e.g. auth-init blocked),
-  // init anyway after 4 seconds so the tool doesn't stay blank.
-  setTimeout(() => {
-    const app = document.getElementById('app');
-    if (!app || !app.children.length) App.init();
-  }, 4000);
-});
+document.addEventListener('DOMContentLoaded', () => App.init());
 window.App = App;

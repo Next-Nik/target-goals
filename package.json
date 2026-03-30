@@ -1,7 +1,11 @@
 {
-  "name": "life-os-target-goals",
+  "name": "life-os-purpose-piece",
   "version": "1.0.0",
   "private": true,
-  "engines": { "node": "24.x" },
-  "dependencies": { "@anthropic-ai/sdk": "^0.20.0" }
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0"
+  }
 }
