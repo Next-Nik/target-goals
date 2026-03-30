@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Next-1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cormorant+SC:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #FAFAF7;
+      --card: #FFFFFF;
+      --dark: #0F1523;
+      --gold: #C8922A;
+      --gold-dk: #A8721A;
+      --gold-border: rgba(200,146,42,0.78);
+      --gold-rule: rgba(200,146,42,0.20);
+      --gold-faint: rgba(200,146,42,0.06);
+      --text: #0F1523;
+      --meta: rgba(15,21,35,0.88);
+      --ghost: rgba(15,21,35,0.72);
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sc: 'Cormorant SC', Georgia, serif;
+      --radius: 12px;
+      --tab-h: 64px;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--serif); -webkit-font-smoothing: antialiased; min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--gold-rule); border-radius: 2px; }
+
+    /* ── AUTH ── */
+    #auth-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+    .auth-mark { font-family: var(--sc); font-size: 11px; letter-spacing: 0.22em; color: var(--gold-dk); margin-bottom: 48px; }
+    .auth-title { font-family: var(--serif); font-size: 36px; font-weight: 300; color: var(--text); margin-bottom: 6px; text-align: center; }
+    .auth-sub { font-family: var(--serif); font-size: 16px; font-style: italic; color: var(--ghost); text-align: center; margin-bottom: 48px; }
+    .auth-form { width: 100%; max-width: 340px; }
+    .auth-input { width: 100%; padding: 13px 16px; margin-bottom: 10px; border: 1.5px solid var(--gold-rule); border-radius: 40px; background: var(--card); font-family: var(--serif); font-size: 16px; color: var(--text); outline: none; transition: border-color 0.2s; }
+    .auth-input:focus { border-color: var(--gold-border); }
+    .auth-input::placeholder { color: var(--ghost); }
+    .auth-btn { width: 100%; padding: 13px; border-radius: 40px; border: 1.5px solid var(--gold-border); background: var(--gold-faint); font-family: var(--sc); font-size: 13px; font-weight: 600; letter-spacing: 0.16em; color: var(--gold-dk); cursor: pointer; transition: all 0.2s; }
+    .auth-btn:hover { background: rgba(200,146,42,0.10); }
+    .auth-msg { text-align: center; font-size: 14px; color: var(--ghost); margin-top: 14px; min-height: 20px; }
+    .auth-msg.err { color: #8A4A4A; }
+
+    /* ── APP ── */
+    #app { display: none; min-height: 100vh; padding-bottom: var(--tab-h); }
+
+    /* ── HEADER ── */
+    .app-header { position: sticky; top: 0; z-index: 100; background: rgba(250,250,247,0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--gold-rule); padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+    .app-header-left { display: flex; align-items: center; gap: 12px; }
+    .header-mark { font-family: var(--sc); font-size: 11px; letter-spacing: 0.2em; color: var(--gold-dk); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4A7C59; flex-shrink: 0; transition: background 0.3s; }
+    .status-dot.delayed { background: var(--gold); }
+    .status-dot.offline { background: #8A4A4A; }
+    .status-label { font-family: var(--sc); font-size: 10px; letter-spacing: 0.14em; color: var(--ghost); }
+    .signout-btn { background: none; border: none; cursor: pointer; font-family: var(--sc); font-size: 10px; letter-spacing: 0.12em; color: var(--ghost); transition: color 0.2s; }
+    .signout-btn:hover { color: var(--text); }
+
+    /* ── TAB CONTENT ── */
+    .tab-pane { display: none; padding: 20px 16px 40px; max-width: 680px; margin: 0 auto; }
+    .tab-pane.active { display: block; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(250,250,247,0.97); backdrop-filter: blur(12px); border-top: 1px solid var(--gold-rule); height: var(--tab-h); display: flex; align-items: stretch; }
+    .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; background: none; border: none; transition: all 0.2s; padding: 0; }
+    .nav-tab-icon { font-size: 18px; line-height: 1; transition: transform 0.2s; }
+    .nav-tab-label { font-family: var(--sc); font-size: 9px; letter-spacing: 0.14em; color: var(--ghost); transition: color 0.2s; }
+    .nav-tab.active .nav-tab-label { color: var(--gold-dk); }
+    .nav-tab.active .nav-tab-icon { transform: translateY(-2px); }
+
+    /* ── NOW TAB ── */
+    .now-eyebrow { font-family: var(--sc); font-size: 10px; letter-spacing: 0.2em; color: var(--gold-dk); margin-bottom: 20px; display: block; }
+    .now-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); border: 1px solid var(--gold-rule); border-radius: var(--radius); padding: 18px 16px; }
+    .stat-num { font-family: var(--serif); font-size: 36px; font-weight: 300; color: var(--text); line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-family: var(--sc); font-size: 9px; letter-spacing: 0.14em; color: var(--ghost); }
+    .stat-delta { font-family: var(--serif); font-size: 13px; color: #4A7C59; margin-top: 4px; }
+    .stat-delta.down { color: #8A4A4A; }
+
+    .now-section { margin-bottom: 20px; }
+    .now-section-title { font-family: var(--sc); font-size: 10px; letter-spacing: 0.16em; color: var(--gold-dk); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .now-row { background: var(--card); border: 1px solid var(--gold-rule); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .now-row-left { display: flex; flex-direction: column; gap: 2px; }
+    .now-row-name { font-family: var(--serif); font-size: 16px; color: var(--text); }
+    .now-row-sub { font-family: var(--serif); font-size: 13px; font-style: italic; color: var(--ghost); }
+    .now-row-right { font-family: var(--sc); font-size: 10px; letter-spacing: 0.1em; color: var(--gold-dk); text-align: right; }
+    .alert-row { border-left: 3px solid #8A4A4A; }
+    .alert-row .now-row-name { color: #8A4A4A; }
+    .cache-note { font-family: var(--serif); font-size: 12px; font-style: italic; color: var(--ghost); text-align: center; padding: 12px 0; }
+
+    /* ── ASK TAB ── */
+    .ask-intro { background: var(--card); border: 1px solid var(--gold-rule); border-left: 3px solid var(--gold-border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .ask-intro-name { font-family: var(--sc); font-size: 10px; letter-spacing: 0.18em; color: var(--gold-dk); margin-bottom: 8px; }
+    .ask-intro-body { font-family: var(--serif); font-size: 16px; font-weight: 300; color: var(--text); line-height: 1.75; }
+
+    .ask-messages { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; min-height: 60px; }
+    .ask-msg { max-width: 92%; }
+    .ask-msg-jorel { background: var(--card); border: 1px solid var(--gold-rule); border-left: 3px solid var(--gold-border); border-radius: 10px; padding: 18px 20px; align-self: flex-start; font-family: var(--serif); font-size: 16px; line-height: 1.8; color: var(--text); animation: fadeUp 0.3s ease; }
+    .ask-msg-nik { background: var(--gold-faint); border: 1px solid var(--gold-rule); border-radius: 10px; padding: 14px 18px; align-self: flex-end; margin-left: auto; font-family: var(--serif); font-size: 15px; font-style: italic; color: var(--meta); animation: fadeUp 0.3s ease; }
+    .ask-thinking { font-family: var(--serif); font-size: 14px; font-style: italic; color: var(--ghost); padding: 8px 0; animation: pulse 1.5s ease infinite; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+    .ask-input-row { display: flex; gap: 0; position: sticky; bottom: calc(var(--tab-h) + 12px); }
+    .ask-input { flex: 1; padding: 13px 16px; border: 1.5px solid var(--gold-border); border-right: none; border-radius: 40px 0 0 40px; background: var(--card); font-family: var(--serif); font-size: 16px; color: var(--text); outline: none; }
+    .ask-input::placeholder { color: var(--ghost); font-style: italic; }
+    .ask-send { padding: 13px 20px; border: 1.5px solid var(--gold-border); border-radius: 0 40px 40px 0; background: var(--gold-faint); font-family: var(--sc); font-size: 11px; letter-spacing: 0.14em; color: var(--gold-dk); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .ask-send:hover { background: rgba(200,146,42,0.12); }
+
+    .ask-prompts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .ask-prompt-chip { background: var(--card); border: 1px solid var(--gold-rule); border-radius: 20px; padding: 7px 14px; font-family: var(--serif); font-size: 13px; color: var(--ghost); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .ask-prompt-chip:hover { border-color: var(--gold-border); color: var(--gold-dk); }
+
+    /* ── USERS TAB ── */
+    .search-row { display: flex; gap: 0; margin-bottom: 20px; }
+    .search-input { flex: 1; padding: 12px 16px; border: 1.5px solid var(--gold-border); border-right: none; border-radius: 40px 0 0 40px; background: var(--card); font-family: var(--serif); font-size: 16px; color: var(--text); outline: none; }
+    .search-input::placeholder { color: var(--ghost); font-style: italic; }
+    .search-btn { padding: 12px 20px; border: 1.5px solid var(--gold-border); border-radius: 0 40px 40px 0; background: var(--gold-faint); font-family: var(--sc); font-size: 11px; letter-spacing: 0.14em; color: var(--gold-dk); cursor: pointer; }
+
+    .user-card { background: var(--card); border: 1px solid var(--gold-rule); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; }
+    .user-card-email { font-family: var(--sc); font-size: 11px; letter-spacing: 0.12em; color: var(--gold-dk); margin-bottom: 6px; }
+    .user-card-name { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--text); margin-bottom: 14px; }
+    .user-card-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--gold-rule); }
+    .user-card-row:last-child { border-bottom: none; }
+    .user-card-key { font-family: var(--sc); font-size: 10px; letter-spacing: 0.12em; color: var(--ghost); }
+    .user-card-val { font-family: var(--serif); font-size: 15px; color: var(--text); }
+    .user-empty { font-family: var(--serif); font-size: 16px; font-style: italic; color: var(--ghost); text-align: center; padding: 40px 0; }
+
+    /* ── TOOLS TAB ── */
+    .tools-section-title { font-family: var(--sc); font-size: 10px; letter-spacing: 0.2em; color: var(--gold-dk); margin: 24px 0 12px; display: block; }
+    .tools-section-title:first-child { margin-top: 0; }
+
+    .tool-row { background: var(--card); border: 1px solid var(--gold-rule); border-radius: 10px; padding: 16px 18px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .tool-row-left { display: flex; flex-direction: column; gap: 3px; }
+    .tool-row-name { font-family: var(--serif); font-size: 18px; font-weight: 300; color: var(--text); }
+    .tool-row-desc { font-family: var(--serif); font-size: 13px; font-style: italic; color: var(--ghost); }
+    .tool-toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .tool-toggle input { opacity: 0; width: 0; height: 0; }
+    .tool-toggle-slider { position: absolute; inset: 0; background: var(--gold-rule); border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+    .tool-toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
+    .tool-toggle input:checked + .tool-toggle-slider { background: var(--gold-border); }
+    .tool-toggle input:checked + .tool-toggle-slider::before { transform: translateX(20px); }
+
+    /* Domain content editor */
+    .domain-card { background: var(--card); border: 1.5px solid var(--gold-rule); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+    .domain-card.expanded { border-color: var(--gold-border); }
+    .domain-card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; cursor: pointer; }
+    .domain-card-name { font-family: var(--serif); font-size: 19px; font-weight: 300; color: var(--text); }
+    .domain-card-meta { font-family: var(--sc); font-size: 10px; letter-spacing: 0.12em; color: var(--ghost); margin-top: 2px; }
+    .domain-chevron { font-size: 16px; color: var(--gold-dk); transition: transform 0.2s; }
+    .domain-card.expanded .domain-chevron { transform: rotate(180deg); }
+    .domain-editor { display: none; padding: 0 18px 18px; }
+    .domain-card.expanded .domain-editor { display: block; }
+    .field-group { margin-bottom: 16px; }
+    .field-label { display: block; font-family: var(--sc); font-size: 9px; font-weight: 600; letter-spacing: 0.14em; color: var(--gold-dk); text-transform: uppercase; margin-bottom: 6px; }
+    .field-input, .field-textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--gold-rule); border-radius: 8px; background: var(--bg); font-family: var(--serif); font-size: 15px; color: var(--text); outline: none; transition: border-color 0.2s; resize: vertical; }
+    .field-input:focus, .field-textarea:focus { border-color: var(--gold-border); background: var(--card); }
+    .field-textarea { min-height: 72px; line-height: 1.6; }
+    .save-row { display: flex; align-items: center; gap: 12px; }
+    .save-btn { padding: 9px 22px; border-radius: 40px; border: 1.5px solid var(--gold-border); background: var(--gold-faint); font-family: var(--sc); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; color: var(--gold-dk); cursor: pointer; transition: all 0.2s; }
+    .save-btn:hover { background: rgba(200,146,42,0.12); }
+    .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .save-status { font-family: var(--serif); font-size: 14px; color: var(--ghost); }
+    .save-status.ok { color: #4A7C59; }
+    .save-status.err { color: #8A4A4A; }
+    .sub-toggle-btn { display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; padding: 10px 0 4px; font-family: var(--sc); font-size: 10px; letter-spacing: 0.14em; color: var(--ghost); width: 100%; transition: color 0.2s; }
+    .sub-toggle-btn:hover { color: var(--gold-dk); }
+    .sub-toggle-line { flex: 1; height: 1px; background: var(--gold-rule); }
+    .sub-list { margin-top: 4px; }
+    .sub-card { border: 1px solid var(--gold-rule); border-radius: 8px; margin-bottom: 8px; overflow: hidden; background: var(--bg); }
+    .sub-card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; cursor: pointer; }
+    .sub-card-name { font-family: var(--serif); font-size: 15px; font-weight: 300; color: var(--text); }
+    .sub-chevron { font-size: 13px; color: var(--gold-dk); transition: transform 0.2s; }
+    .sub-card.expanded .sub-chevron { transform: rotate(180deg); }
+    .sub-editor { display: none; padding: 0 14px 14px; }
+    .sub-card.expanded .sub-editor { display: block; }
+    .add-child-btn { display: flex; align-items: center; gap: 8px; background: none; border: 1.5px dashed var(--gold-rule); border-radius: 8px; padding: 11px 14px; cursor: pointer; width: 100%; margin-top: 8px; font-family: var(--serif); font-size: 14px; color: var(--ghost); transition: all 0.2s; }
+    .add-child-btn:hover { border-color: var(--gold-border); color: var(--gold-dk); }
+
+    /* Add modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,21,35,0.55); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--card); border: 1px solid var(--gold-rule); border-radius: var(--radius); padding: 28px 22px; width: 100%; max-width: 400px; transform: translateY(16px); transition: transform 0.3s; }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-title { font-family: var(--serif); font-size: 22px; font-weight: 300; margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-cancel { flex: 1; padding: 11px; border-radius: 40px; border: 1.5px solid var(--gold-rule); background: none; font-family: var(--sc); font-size: 11px; letter-spacing: 0.12em; color: var(--ghost); cursor: pointer; }
+    .modal-save { flex: 2; padding: 11px; border-radius: 40px; border: 1.5px solid var(--gold-border); background: var(--gold-faint); font-family: var(--sc); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; color: var(--gold-dk); cursor: pointer; }
+
+    .loading-msg { font-family: var(--serif); font-size: 16px; font-style: italic; color: var(--ghost); text-align: center; padding: 48px 0; }
+
+    @media (min-width: 640px) {
+      .tab-pane { padding: 28px 24px 60px; }
+      .bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); border-radius: 20px 20px 0 0; border: 1px solid var(--gold-rule); border-bottom: none; }
+      #app { max-width: 680px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <span class="auth-mark">NEXT-1 · NEXTUS</span>
+  <h1 class="auth-title">Welcome, Nik.</h1>
+  <p class="auth-sub">The ecosystem is listening.</p>
+  <div class="auth-form">
+    <input type="email" id="auth-email" class="auth-input" placeholder="your@email.com" autocomplete="email">
+    <input type="password" id="auth-password" class="auth-input" placeholder="Password" autocomplete="current-password">
+    <button class="auth-btn" onclick="signIn()">Enter</button>
+    <p class="auth-msg" id="auth-msg"></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header class="app-header">
+    <div class="app-header-left">
+      <span class="header-mark">NEXT-1</span>
+      <div class="status-dot" id="status-dot"></div>
+      <span class="status-label" id="status-label">Connecting...</span>
+    </div>
+    <button class="signout-btn" onclick="signOut()">Sign out</button>
+  </header>
+
+  <!-- NOW -->
+  <div class="tab-pane active" id="tab-now">
+    <span class="now-eyebrow">Current State</span>
+    <div class="now-grid" id="now-stats">
+      <div class="stat-card"><div class="stat-num">—</div><div class="stat-label">Total Users</div></div>
+      <div class="stat-card"><div class="stat-num">—</div><div class="stat-label">This Week</div></div>
+      <div class="stat-card"><div class="stat-num">—</div><div class="stat-label">Pulse Entries</div></div>
+      <div class="stat-card"><div class="stat-num">—</div><div class="stat-label">Map Sessions</div></div>
+    </div>
+
+    <div class="now-section">
+      <div class="now-section-title"><span>Recent Signups</span></div>
+      <div id="now-recent"><div class="loading-msg">Loading...</div></div>
+    </div>
+
+    <div class="now-section">
+      <div class="now-section-title"><span>Tool Activity</span></div>
+      <div id="now-tools"><div class="loading-msg">Loading...</div></div>
+    </div>
+
+    <p class="cache-note" id="cache-note"></p>
+  </div>
+
+  <!-- ASK -->
+  <div class="tab-pane" id="tab-ask">
+    <div class="ask-intro">
+      <div class="ask-intro-name">NEXT-1</div>
+      <div class="ask-intro-body">I have read the ecosystem. Ask me anything — what's working, what isn't, who's struggling, what to fix first. I'll tell you what the data shows and what it means.</div>
+    </div>
+
+    <div class="ask-prompts" id="ask-prompts">
+      <div class="ask-prompt-chip" onclick="sendPrompt(this.textContent)">What's working?</div>
+      <div class="ask-prompt-chip" onclick="sendPrompt(this.textContent)">What should I fix first?</div>
+      <div class="ask-prompt-chip" onclick="sendPrompt(this.textContent)">How many signups this week?</div>
+      <div class="ask-prompt-chip" onclick="sendPrompt(this.textContent)">Which tool has the most drop-off?</div>
+      <div class="ask-prompt-chip" onclick="sendPrompt(this.textContent)">What are the lowest Map scores?</div>
+      <div class="ask-prompt-chip" onclick="sendPrompt(this.textContent)">Who signed up and did nothing?</div>
+    </div>
+
+    <div class="ask-messages" id="ask-messages"></div>
+
+    <div class="ask-input-row">
+      <input type="text" class="ask-input" id="ask-input" placeholder="Ask Next-1 anything..." onkeydown="if(event.key==='Enter')sendAsk()">
+      <button class="ask-send" onclick="sendAsk()">Send</button>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="tab-pane" id="tab-users">
+    <div style="background:var(--card);border:1px solid var(--gold-rule);border-left:3px solid var(--gold-border);border-radius:var(--radius);padding:16px 18px;margin-bottom:20px;">
+      <div style="font-family:var(--sc);font-size:10px;letter-spacing:0.16em;color:var(--gold-dk);margin-bottom:6px;">FOR CB</div>
+      <div style="font-family:var(--serif);font-size:14px;color:var(--ghost);line-height:1.65;">Full user lookup requires a Supabase RPC function that returns auth users with metadata. Build <code style="font-family:monospace;font-size:12px;background:var(--bg);padding:2px 5px;border-radius:4px;">get_users_list()</code> returning id, email, name, created_at, last_sign_in_at. Until then, search routes through Next-1.</div>
+    </div>
+    <div class="search-row">
+      <input type="text" class="search-input" id="user-search" placeholder="Name, email, or username..." onkeydown="if(event.key==='Enter')searchUser()">
+      <button class="search-btn" onclick="searchUser()">Search</button>
+    </div>
+    <div id="user-results"><div class="user-empty">Search by name (fuzzy matched), email, or username.</div></div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="tab-pane" id="tab-tools">
+    <span class="tools-section-title">Kill Switches</span>
+    <div id="tools-toggles">
+      <div class="loading-msg">Loading...</div>
+    </div>
+
+    <span class="tools-section-title">Domain Content</span>
+    <div id="domain-list">
+      <div class="loading-msg">Loading domains...</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottom-nav" style="display:none;">
+  <button class="nav-tab active" onclick="switchTab('now', this)">
+    <span class="nav-tab-icon">◎</span>
+    <span class="nav-tab-label">Now</span>
+  </button>
+  <button class="nav-tab" onclick="switchTab('ask', this)">
+    <span class="nav-tab-icon">◈</span>
+    <span class="nav-tab-label">Ask</span>
+  </button>
+  <button class="nav-tab" onclick="switchTab('users', this)">
+    <span class="nav-tab-icon">◐</span>
+    <span class="nav-tab-label">Users</span>
+  </button>
+  <button class="nav-tab" onclick="switchTab('tools', this)">
+    <span class="nav-tab-icon">◉</span>
+    <span class="nav-tab-label">Tools</span>
+  </button>
+</nav>
+
+<!-- ADD CHILD MODAL -->
+<div class="modal-overlay" id="add-modal" onclick="closeAddModal(event)">
+  <div class="modal">
+    <h2 class="modal-title">Add sub-domain</h2>
+    <input type="hidden" id="add-parent-id">
+    <div class="field-group">
+      <label class="field-label">Name</label>
+      <input type="text" id="add-name" class="field-input" placeholder="e.g. Somatic Therapy">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Horizon Goal</label>
+      <textarea id="add-goal" class="field-textarea" placeholder="What does 10/10 look like here?"></textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <textarea id="add-desc" class="field-textarea" placeholder="What lives here and why does it matter?"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="modal-save" onclick="saveNewChild()">Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+const SB_URL = "https://tphbpwzozkskytoichho.supabase.co";
+const SB_KEY = "sb_publishable_M00GF1FWV5tgKHqmyRCZag_kJjgBJn-";
+const FOUNDER_EMAIL = "nik@nextus.world";
+const ANTHROPIC_KEY = ""; // Set via environment or leave empty to prompt
+
+const TOOLS = [
+  { id: "foundation",  name: "Foundation",     desc: "The nervous system baseline tool", url: null },
+  { id: "the-map",     name: "The Map",         desc: "Seven domain assessment", url: null },
+  { id: "pulse",       name: "Pulse",           desc: "Daily check-in and tracking", url: null },
+  { id: "purpose-piece", name: "Purpose Piece", desc: "Contribution pattern identifier", url: null },
+  { id: "horizon-leap", name: "Horizon Leap",   desc: "Identity and horizon tool", url: null },
+];
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+let cachedData = {};
+let lastUpdated = null;
+
+// ── AUTH ─────────────────────────────────────────────────────
+async function signIn() {
+  const email = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value;
+  const msg = document.getElementById("auth-msg");
+  msg.textContent = "Entering...";
+  msg.className = "auth-msg";
+
+  if (email !== FOUNDER_EMAIL) {
+    msg.textContent = "Access restricted.";
+    msg.className = "auth-msg err";
+    return;
+  }
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    msg.textContent = error.message;
+    msg.className = "auth-msg err";
+  }
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+}
+
+document.getElementById("auth-password").addEventListener("keydown", e => {
+  if (e.key === "Enter") signIn();
+});
+
+sb.auth.onAuthStateChange(async (_event, session) => {
+  if (session?.user?.email === FOUNDER_EMAIL) {
+    document.getElementById("auth-screen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("bottom-nav").style.display = "flex";
+    await loadAll();
+  } else if (!session) {
+    document.getElementById("auth-screen").style.display = "flex";
+    document.getElementById("app").style.display = "none";
+    document.getElementById("bottom-nav").style.display = "none";
+  }
+});
+
+// ── TAB NAVIGATION ────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  btn.classList.add("active");
+}
+
+// ── LOAD ALL DATA ─────────────────────────────────────────────
+async function loadAll() {
+  setStatus("connecting");
+  try {
+    await Promise.all([loadNow(), loadDomains(), loadToolToggles()]);
+    lastUpdated = new Date();
+    setStatus("live");
+    document.getElementById("cache-note").textContent =
+      "Live data · Updated " + lastUpdated.toLocaleTimeString();
+  } catch(e) {
+    setStatus("offline");
+    document.getElementById("cache-note").textContent =
+      "Could not reach Supabase. Showing last known state.";
+  }
+}
+
+function setStatus(state) {
+  const dot = document.getElementById("status-dot");
+  const label = document.getElementById("status-label");
+  dot.className = "status-dot " + (state === "live" ? "" : state);
+  label.textContent = state === "live" ? "Live" : state === "connecting" ? "Connecting..." : "Offline";
+}
+
+// ── NOW TAB ───────────────────────────────────────────────────
+async function loadNow() {
+  // Users
+  const { data: users } = await sb.auth.admin?.listUsers?.() || { data: null };
+
+  // Fallback: count from accessible tables
+  const { count: totalPulse } = await sb.from("pulse_entries").select("*", { count: "exact", head: true });
+  const { count: totalMap } = await sb.from("orienteering_sessions").select("*", { count: "exact", head: true });
+
+  // Recent orienteering sessions as proxy for recent activity
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentSessions } = await sb.from("orienteering_sessions")
+    .select("user_id, created_at, complete")
+    .gte("created_at", oneWeekAgo)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const { data: recentPulse } = await sb.from("pulse_entries")
+    .select("user_id, completed_at, type")
+    .gte("completed_at", oneWeekAgo)
+    .order("completed_at", { ascending: false })
+    .limit(10);
+
+  // Stats grid
+  const statsEl = document.getElementById("now-stats");
+  const weeklyPulse = recentPulse?.length || 0;
+  const weeklySessions = recentSessions?.length || 0;
+  statsEl.innerHTML = `
+    <div class="stat-card"><div class="stat-num">${totalPulse ?? "—"}</div><div class="stat-label">Pulse Entries</div></div>
+    <div class="stat-card"><div class="stat-num">${weeklyPulse}</div><div class="stat-label">Pulses This Week</div></div>
+    <div class="stat-card"><div class="stat-num">${totalMap ?? "—"}</div><div class="stat-label">Map Sessions</div></div>
+    <div class="stat-card"><div class="stat-num">${weeklySessions}</div><div class="stat-label">Sessions This Week</div></div>
+  `;
+
+  // Recent sessions
+  const recentEl = document.getElementById("now-recent");
+  if (recentSessions && recentSessions.length > 0) {
+    recentEl.innerHTML = recentSessions.slice(0, 5).map(s => `
+      <div class="now-row">
+        <div class="now-row-left">
+          <span class="now-row-name">${s.user_id?.slice(0,8)}...</span>
+          <span class="now-row-sub">${s.complete ? "Completed Map" : "Map in progress"}</span>
+        </div>
+        <div class="now-row-right">${timeAgo(s.created_at)}</div>
+      </div>`).join("");
+  } else {
+    recentEl.innerHTML = '<div class="user-empty">No recent sessions.</div>';
+  }
+
+  // Tool activity
+  const toolsEl = document.getElementById("now-tools");
+  const mapComplete = recentSessions?.filter(s => s.complete).length || 0;
+  const mapIncomplete = recentSessions?.filter(s => !s.complete).length || 0;
+  toolsEl.innerHTML = `
+    <div class="now-row">
+      <div class="now-row-left"><span class="now-row-name">The Map</span><span class="now-row-sub">This week</span></div>
+      <div class="now-row-right">${mapComplete} complete · ${mapIncomplete} in progress</div>
+    </div>
+    <div class="now-row">
+      <div class="now-row-left"><span class="now-row-name">Pulse</span><span class="now-row-sub">This week</span></div>
+      <div class="now-row-right">${weeklyPulse} entries</div>
+    </div>
+  `;
+
+  // Cache data for Next-1
+  cachedData = {
+    totalPulse, totalMap, weeklyPulse, weeklySessions,
+    mapComplete, mapIncomplete,
+    recentSessions: recentSessions?.slice(0, 20),
+    recentPulse: recentPulse?.slice(0, 20),
+  };
+}
+
+// ── ASK NEXT-1 ────────────────────────────────────────────────
+let askHistory = [];
+
+async function sendPrompt(text) {
+  document.getElementById("ask-input").value = text;
+  await sendAsk();
+}
+
+async function sendAsk() {
+  const input = document.getElementById("ask-input");
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = "";
+
+  const messagesEl = document.getElementById("ask-messages");
+
+  // Add user message
+  askHistory.push({ role: "user", content: question });
+  messagesEl.innerHTML += `<div class="ask-msg ask-msg-nik">${esc(question)}</div>`;
+
+  // Thinking indicator
+  const thinkingId = "thinking-" + Date.now();
+  messagesEl.innerHTML += `<div class="ask-thinking" id="${thinkingId}">Next-1 is reading the data...</div>`;
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  try {
+    // Build data context
+    const dataContext = JSON.stringify(cachedData, null, 2);
+
+    const systemPrompt = `You are Next-1 — the intelligence layer for the NextUs ecosystem. You are speaking directly to Nik Wood, the founder.
+
+WHAT YOU ARE:
+A translation layer between system data and founder judgment. You do not just report numbers. You interpret, pattern-match, and point to action.
+
+WHAT YOU KNOW:
+NextUs is a dual-layer ecosystem — Life OS (personal navigation) and NextUs (civilisational coordination). The tools are: Foundation (nervous system baseline), The Map (7-domain assessment), Pulse (daily check-in), Purpose Piece (contribution pattern), Horizon Leap (identity tool). The seven domains of life: Path, Spark, Body, Finances, Relationships, Inner Game, Outer Game. The Horizon Scale runs 0–10. Below 5 is deficit, 5–7.5 is viable, 8–10 is surplus.
+
+YOUR VOICE:
+Senior advisor. Direct. No hedging unless genuinely uncertain. No flattery. No bullet points unless truly necessary. Speak in paragraphs. Name what the data shows. Interpret what it means. Suggest what to consider.
+
+Every response follows: signal → interpretation → recommendation.
+
+LIVE DATA SNAPSHOT:
+${dataContext}
+
+If asked something the data cannot answer, say so clearly and explain what data would be needed to answer it properly.`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: askHistory,
+      }),
+    });
+
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || "I couldn't read the data right now. Try again.";
+
+    // Remove thinking
+    document.getElementById(thinkingId)?.remove();
+
+    // Add Next-1 response
+    askHistory.push({ role: "assistant", content: reply });
+    messagesEl.innerHTML += `<div class="ask-msg ask-msg-jorel">${reply.replace(/\n/g, '<br>')}</div>`;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    // Hide prompt chips after first use
+    document.getElementById("ask-prompts").style.display = "none";
+
+  } catch(e) {
+    document.getElementById(thinkingId)?.remove();
+    messagesEl.innerHTML += `<div class="ask-msg ask-msg-jorel">I encountered an error reading the data. ${e.message}</div>`;
+  }
+}
+
+// ── USERS TAB ─────────────────────────────────────────────────
+async function searchUser() {
+  const query = document.getElementById("user-search").value.trim();
+  if (!query) return;
+
+  const resultsEl = document.getElementById("user-results");
+  resultsEl.innerHTML = '<div class="loading-msg">Searching...</div>';
+
+  // Pull all available data from accessible tables
+  const { data: pulseData } = await sb.from("pulse_entries")
+    .select("user_id, type, completed_at")
+    .order("completed_at", { ascending: false })
+    .limit(500);
+
+  const { data: mapData } = await sb.from("orienteering_sessions")
+    .select("user_id, created_at, complete")
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  const { data: accessData } = await sb.from("access")
+    .select("user_id, product, tier, expires_at")
+    .limit(500);
+
+  // Aggregate by user_id
+  const userMap = {};
+  (pulseData || []).forEach(r => {
+    if (!userMap[r.user_id]) userMap[r.user_id] = { user_id: r.user_id, pulseCount: 0, mapCount: 0, mapComplete: 0, access: [] };
+    userMap[r.user_id].pulseCount++;
+    if (!userMap[r.user_id].lastSeen || r.completed_at > userMap[r.user_id].lastSeen) {
+      userMap[r.user_id].lastSeen = r.completed_at;
+    }
+  });
+  (mapData || []).forEach(r => {
+    if (!userMap[r.user_id]) userMap[r.user_id] = { user_id: r.user_id, pulseCount: 0, mapCount: 0, mapComplete: 0, access: [] };
+    userMap[r.user_id].mapCount++;
+    if (r.complete) userMap[r.user_id].mapComplete++;
+    if (!userMap[r.user_id].lastSeen || r.created_at > userMap[r.user_id].lastSeen) {
+      userMap[r.user_id].lastSeen = r.created_at;
+    }
+  });
+  (accessData || []).forEach(r => {
+    if (!userMap[r.user_id]) userMap[r.user_id] = { user_id: r.user_id, pulseCount: 0, mapCount: 0, mapComplete: 0, access: [] };
+    userMap[r.user_id].access.push(`${r.product} (${r.tier})`);
+  });
+
+  const users = Object.values(userMap);
+  const totalUsers = users.length;
+
+  // Route through Next-1 for fuzzy interpretation
+  resultsEl.innerHTML = `
+    <div class="user-card">
+      <div class="user-card-email">Search: "${esc(query)}"</div>
+      <div class="user-card-name" style="font-size:16px;margin-bottom:8px;">Routing to Next-1 for fuzzy match...</div>
+      <div class="user-card-row"><span class="user-card-key">Total users with activity</span><span class="user-card-val">${totalUsers}</span></div>
+      <div class="user-card-row"><span class="user-card-key">Note</span><span class="user-card-val" style="font-style:italic;color:var(--ghost);font-size:13px;">Name resolution requires the CB-built get_users_list() RPC. Next-1 will interpret with available data.</span></div>
+    </div>`;
+
+  // Ask Next-1 to interpret the search with fuzzy matching
+  const prompt = `I'm searching for a user: "${query}". This could be a name with variant spellings (e.g. Nikolas/Nicholas/Nicolas), a username, or an email fragment. 
+
+Here is the aggregate activity data I have (${totalUsers} unique users):
+- Total pulse entries: ${pulseData?.length || 0}
+- Total map sessions: ${mapData?.length || 0} (${mapData?.filter(m=>m.complete).length || 0} complete)
+- Users with access records: ${accessData?.length || 0}
+
+I cannot yet resolve user IDs to names without the get_users_list() RPC function. Tell me: what can you infer about this search, what data would help find this user, and what should I ask CB to build to make user lookup work properly?`;
+
+  // Switch to Ask tab and send
+  document.getElementById("ask-input").value = prompt;
+  switchTab('ask', document.querySelectorAll('.nav-tab')[1]);
+  await sendAsk();
+}
+
+// ── TOOLS TOGGLES ─────────────────────────────────────────────
+async function loadToolToggles() {
+  // Load toggle states from a settings table or localStorage
+  const togglesEl = document.getElementById("tools-toggles");
+  togglesEl.innerHTML = TOOLS.map(tool => {
+    const isOn = localStorage.getItem(`tool_${tool.id}_active`) !== "false";
+    return `
+      <div class="tool-row">
+        <div class="tool-row-left">
+          <span class="tool-row-name">${tool.name}</span>
+          <span class="tool-row-desc">${tool.desc}</span>
+        </div>
+        <label class="tool-toggle">
+          <input type="checkbox" ${isOn ? "checked" : ""} onchange="toggleTool('${tool.id}', this.checked)">
+          <span class="tool-toggle-slider"></span>
+        </label>
+      </div>`;
+  }).join("");
+}
+
+function toggleTool(id, isOn) {
+  localStorage.setItem(`tool_${id}_active`, isOn ? "true" : "false");
+  // In a full implementation, this would write to a Supabase settings table
+  // For now, state persists in localStorage and CB can wire to Supabase
+}
+
+// ── DOMAIN CONTENT EDITOR ─────────────────────────────────────
+async function loadDomains() {
+  const list = document.getElementById("domain-list");
+
+  const { data, error } = await sb.rpc("get_domain_tree");
+  if (error || !data) {
+    list.innerHTML = '<div class="loading-msg">Could not load domains.</div>';
+    return;
+  }
+
+  let domains = data;
+  if (typeof domains === "string") { try { domains = JSON.parse(domains); } catch {} }
+  if (!Array.isArray(domains)) domains = Object.values(domains)[0] || [];
+  if (!Array.isArray(domains) || !domains.length) {
+    list.innerHTML = '<div class="loading-msg">No domains found. Run the seed SQL.</div>';
+    return;
+  }
+
+  list.innerHTML = domains.map(d => renderDomainCard(d)).join("");
+}
+
+function renderDomainCard(d) {
+  const subCards = (d.subDomains || []).map(s => renderSubCard(s)).join("");
+  return `
+    <div class="domain-card" id="card-${d.id}">
+      <div class="domain-card-header" onclick="toggleCard('${d.id}')">
+        <div>
+          <div class="domain-card-name">${esc(d.name)}</div>
+          <div class="domain-card-meta">${(d.subDomains||[]).length} sub-domains</div>
+        </div>
+        <span class="domain-chevron">&#8964;</span>
+      </div>
+      <div class="domain-editor">
+        ${renderFields(d)}
+        <div class="save-row">
+          <button class="save-btn" onclick="saveDomain('${d.id}')">Save</button>
+          <span class="save-status" id="status-${d.id}"></span>
+        </div>
+        <button class="sub-toggle-btn" onclick="toggleSubList('${d.id}')">
+          <span class="sub-toggle-line"></span><span>Sub-domains</span><span class="sub-toggle-line"></span>
+        </button>
+        <div class="sub-list" id="sub-list-${d.id}">
+          ${subCards}
+          <button class="add-child-btn" onclick="openAddModal('${d.id}')">+ Add sub-domain</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderSubCard(s) {
+  const grandchildren = (s.subDomains || []).map(g => renderSubCard(g)).join("");
+  return `
+    <div class="sub-card" id="card-${s.id}">
+      <div class="sub-card-header" onclick="toggleCard('${s.id}')">
+        <span class="sub-card-name">${esc(s.name)}</span>
+        <span class="sub-chevron">&#8964;</span>
+      </div>
+      <div class="sub-editor">
+        ${renderFields(s)}
+        <div class="save-row">
+          <button class="save-btn" onclick="saveDomain('${s.id}')">Save</button>
+          <span class="save-status" id="status-${s.id}"></span>
+        </div>
+        ${grandchildren ? `
+          <button class="sub-toggle-btn" onclick="toggleSubList('${s.id}')">
+            <span class="sub-toggle-line"></span><span>Sub-domains</span><span class="sub-toggle-line"></span>
+          </button>
+          <div class="sub-list" id="sub-list-${s.id}">${grandchildren}</div>` : ""}
+        <button class="add-child-btn" onclick="openAddModal('${s.id}')">+ Add sub-domain</button>
+      </div>
+    </div>`;
+}
+
+function renderFields(item) {
+  return `
+    <div class="field-group">
+      <label class="field-label">Name</label>
+      <input type="text" class="field-input" id="name-${item.id}" value="${esc(item.name)}">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Horizon Goal</label>
+      <textarea class="field-textarea" id="goal-${item.id}">${esc(item.horizonGoal||'')}</textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Description</label>
+      <textarea class="field-textarea" id="desc-${item.id}">${esc(item.description||'')}</textarea>
+    </div>`;
+}
+
+function toggleCard(id) {
+  const el = document.getElementById("card-" + id);
+  el.classList.toggle("expanded");
+}
+
+function toggleSubList(id) {
+  const el = document.getElementById("sub-list-" + id);
+  if (el) el.style.display = el.style.display === "none" ? "block" : "none";
+}
+
+async function saveDomain(id) {
+  const name = document.getElementById("name-" + id)?.value?.trim();
+  const horizonGoal = document.getElementById("goal-" + id)?.value?.trim();
+  const description = document.getElementById("desc-" + id)?.value?.trim();
+  if (!name) { showStatus(id, "Name required", "err"); return; }
+
+  const btn = document.querySelector(`#card-${id} .save-btn`);
+  if (btn) btn.disabled = true;
+  showStatus(id, "Saving...", "");
+
+  const { error } = await sb.from("domains")
+    .update({ name, horizon_goal: horizonGoal, description, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (btn) btn.disabled = false;
+  if (error) { showStatus(id, "Failed: " + error.message, "err"); }
+  else { showStatus(id, "Saved", "ok"); setTimeout(() => showStatus(id, "", ""), 2500); }
+}
+
+function showStatus(id, msg, type) {
+  const el = document.getElementById("status-" + id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = "save-status" + (type ? " " + type : "");
+}
+
+function openAddModal(parentId) {
+  document.getElementById("add-parent-id").value = parentId;
+  document.getElementById("add-name").value = "";
+  document.getElementById("add-goal").value = "";
+  document.getElementById("add-desc").value = "";
+  document.getElementById("add-modal").classList.add("open");
+  setTimeout(() => document.getElementById("add-name").focus(), 300);
+}
+
+function closeAddModal(e) {
+  if (!e || e.target === document.getElementById("add-modal")) {
+    document.getElementById("add-modal").classList.remove("open");
+  }
+}
+
+async function saveNewChild() {
+  const parentId = document.getElementById("add-parent-id").value;
+  const name = document.getElementById("add-name").value.trim();
+  const horizonGoal = document.getElementById("add-goal").value.trim() || "Being mapped";
+  const description = document.getElementById("add-desc").value.trim() || "Being mapped";
+  if (!name) { alert("Name is required."); return; }
+
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const id = `${parentId}-${slug}`.slice(0, 60);
+
+  const { data: siblings } = await sb.from("domains").select("sort_order").eq("parent_id", parentId);
+  const maxOrder = siblings ? Math.max(0, ...siblings.map(s => s.sort_order || 0)) : 0;
+
+  const { error } = await sb.from("domains").insert({
+    id, name, horizon_goal: horizonGoal, description,
+    parent_id: parentId, sort_order: maxOrder + 1,
+  });
+
+  if (error) { alert("Could not add: " + error.message); return; }
+  closeAddModal();
+  await loadDomains();
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function timeAgo(ts) {
+  if (!ts) return "";
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return mins + "m ago";
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + "h ago";
+  return Math.floor(hrs / 24) + "d ago";
+}
+</script>
+</body>
+</html>
