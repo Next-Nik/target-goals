@@ -45,7 +45,7 @@
       --gold-bg:     rgba(200,146,42,0.05);
       --gold-hover:  rgba(200,146,42,0.08);
       --dark:        #0F1523;
-      --meta:        rgba(15,21,35,0.78);
+      --meta:        rgba(15,21,35,0.88);
       --ghost:       rgba(15,21,35,0.72);
       --serif:       'Cormorant Garamond', Georgia, serif;
       --sc:          'Cormorant SC', Georgia, serif;
@@ -97,7 +97,7 @@
       letter-spacing: 0.12em; color: var(--meta);
       transition: color 0.3s;
     }
-    .phase-dot.active { color: var(--gold); }
+    .phase-dot.active { color: #A8721A; }
     .phase-dot.done { color: var(--meta); }
     .phase-dot-circle {
       width: 20px; height: 20px; border-radius: 50%;
@@ -107,11 +107,11 @@
     }
     .phase-dot.active .phase-dot-circle {
       border-color: var(--gold-border);
-      background: var(--gold-bg); color: var(--gold);
+      background: var(--gold-bg); color: #A8721A;
     }
     .phase-dot.done .phase-dot-circle {
       border-color: rgba(200,146,42,0.40);
-      background: rgba(200,146,42,0.08); color: var(--gold);
+      background: rgba(200,146,42,0.08); color: #A8721A;
     }
     .phase-dot-line {
       flex: 1; height: 1px; background: var(--gold-rule);
@@ -515,7 +515,7 @@
     .nk-mobile-menu{display:none;flex-direction:column;background:#FFF;border-bottom:1px solid rgba(200,146,42,0.20);padding:8px 0;}
     .nk-mobile-menu.open{display:flex;}
     .nk-mobile-menu a{font-family:'Cormorant SC',Georgia,serif;font-size:13px;letter-spacing:0.10em;color:#0F1523;text-decoration:none;padding:14px 32px;border-bottom:1px solid rgba(200,146,42,0.08);}
-    .nk-profile-dot{width:32px;height:32px;border-radius:50%;background:rgba(200,146,42,0.02);border:1.5px solid rgba(200,146,42,0.78);display:flex;align-items:center;justify-content:center;font-family:'Cormorant SC',Georgia,serif;font-size:13px;font-weight:600;color:#C8922A;text-decoration:none;flex-shrink:0;transition:all 0.2s;}
+    .nk-profile-dot{width:32px;height:32px;border-radius:50%;background:rgba(200,146,42,0.02);border:1.5px solid rgba(200,146,42,0.78);display:flex;align-items:center;justify-content:center;font-family:'Cormorant SC',Georgia,serif;font-size:13px;font-weight:600;color:#A8721A;text-decoration:none;flex-shrink:0;transition:all 0.2s;}
     .nk-profile-dot:hover{background:rgba(200,146,42,0.08);border-color:rgba(200,146,42,1);transform:translateY(-1px);}
     body{padding-top:64px;}
     @media(max-width:640px){.nk-nav-inner{padding:0 24px;}.nk-nav-links{display:none;}.nk-hamburger{display:flex;}}
@@ -524,12 +524,138 @@
     .inline-input-wrap{margin-top:24px;border:1.5px solid var(--gold-border);border-radius:14px;background:var(--white);overflow:hidden;}
     .inline-input-actions{display:flex;justify-content:flex-end;padding:10px 16px;border-top:1px solid var(--gold-rule);background:rgba(200,146,42,0.02);}
 
+    /* ── HOURGLASS PICKER ── */
+    .hourglass-wrap {
+      background: var(--white);
+      border: 1.5px solid var(--gold-border);
+      border-radius: 14px;
+      padding: 20px 16px 16px;
+    }
+    .hourglass-picker { display: flex; flex-direction: column; gap: 3px; }
+    .hourglass-row {
+      display: flex; align-items: center; gap: 14px; width: 100%;
+    }
+    .hourglass-num {
+      width: 28px; text-align: right; flex-shrink: 0;
+      font-family: var(--serif); font-size: 12px;
+      color: rgba(15,21,35,0.72); font-weight: 400;
+    }
+    .hourglass-num.hourglass-threshold {
+      color: #A8721A; font-weight: 700;
+    }
+    .hourglass-bar-wrap {
+      flex: 1; display: flex; justify-content: center;
+      position: relative; align-items: center;
+    }
+    .hourglass-stub {
+      position: absolute; top: 50%; height: 1px;
+      background: rgba(0,0,0,0.07); pointer-events: none;
+      transform: translateY(-50%);
+    }
+    .hourglass-stub-left  { left: 0; width: calc(50% - 20px); }
+    .hourglass-stub-right { right: 0; width: calc(50% - 20px); }
+    .hourglass-bar {
+      height: 26px; border-radius: 3px;
+      cursor: pointer; transition: all 0.1s;
+      outline: none; position: relative; z-index: 1;
+    }
+    .hourglass-tier {
+      width: 78px; font-family: var(--sc);
+      font-size: 10px; letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+    .hourglass-tier.hourglass-threshold { font-weight: 600; }
+
+    /* ── DOMAIN TAB STRIP ── */
+    .domain-tab-strip {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .domain-tab {
+      padding: 7px 12px; border-radius: 40px;
+      font-family: var(--sc); font-size: 11px;
+      font-weight: 400; letter-spacing: 0.10em;
+      border: 1.5px solid var(--gold-rule);
+      background: var(--white); color: var(--meta);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .domain-tab.active {
+      border-color: var(--gold-border);
+      background: var(--gold-bg); color: var(--dark);
+      font-weight: 600;
+    }
+    .domain-tab.scored { font-weight: 600; }
+
+    /* ── SCORE SUMMARY GRID ── */
+    .score-summary-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px; margin-bottom: 24px;
+    }
+    .score-summary-card {
+      padding: 10px 8px; border-radius: 10px;
+      border: 1.5px solid; text-align: center;
+    }
+    .score-summary-label {
+      font-family: var(--sc); font-size: 10px;
+      letter-spacing: 0.10em; color: var(--meta);
+      margin-bottom: 4px;
+    }
+    .score-summary-num {
+      font-family: var(--serif); font-size: 24px;
+      font-weight: 600; line-height: 1;
+    }
+    .score-summary-tier {
+      font-family: var(--sc); font-size: 9px;
+      letter-spacing: 0.08em; margin-top: 2px;
+    }
+
+    /* ── MILESTONE WHY ── */
+    .milestone-why {
+      font-family: var(--serif); font-size: 13px;
+      font-style: italic; color: rgba(15,21,35,0.72);
+      line-height: 1.5; margin-top: 3px;
+    }
+
+    /* ── CALENDAR LINKS ── */
+    .cal-tabs {
+      display: flex; gap: 8px; margin-bottom: 16px;
+    }
+    .cal-tab {
+      padding: 8px 18px; border-radius: 40px;
+      font-family: var(--sc); font-size: 12px;
+      font-weight: 600; letter-spacing: 0.12em;
+      border: 1.5px solid var(--gold-rule);
+      background: var(--white); color: var(--meta);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .cal-tab.active {
+      border-color: var(--gold-border);
+      background: var(--gold-bg); color: #A8721A;
+    }
+    .cal-links-list {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .cal-link {
+      display: block; padding: 12px 16px;
+      border-radius: 10px; border: 1.5px solid var(--gold-rule);
+      background: var(--white);
+      font-family: var(--serif); font-size: 14px;
+      color: var(--dark); text-decoration: none;
+      transition: all 0.15s;
+    }
+    .cal-link:hover {
+      border-color: var(--gold-border);
+      background: var(--gold-bg); color: #A8721A;
+      transform: translateX(4px);
+    }
+
     @media (max-width: 640px) {
       .nav { padding: 0 20px; }
       .page { padding: 40px 20px 100px; }
       .input-area { padding: 12px 20px 20px; }
       .domain-grid { grid-template-columns: 1fr; }
       .quarter-options { grid-template-columns: 1fr; }
+      .score-summary-grid { grid-template-columns: repeat(3, 1fr); }
+      .hourglass-tier { width: 64px; font-size: 9px; }
     }
   </style>
 </head>
@@ -546,7 +672,7 @@
       <a href="https://nextus.world/about.html">About</a>
       <a href="https://nextus.world/podcast.html">Podcast</a>
     </div>
-    <a href="https://nextus.world/login.html" class="nk-profile-dot" id="nk-profile-dot" title="Sign in" style="display:none;">→</a>
+    <a href="https://nextus.world/login.html" class="nk-profile-dot" id="nk-profile-dot" title="Sign in" style="display:none;">&#8594;</a>
     <button class="nk-hamburger" aria-label="Menu" onclick="this.classList.toggle('open');document.getElementById('nk-mob-tg').classList.toggle('open');"><span></span><span></span><span></span></button>
   </div>
 </nav>
@@ -557,7 +683,7 @@
   <a href="https://nextus.world/work-with-nik.html">Work with Nik</a>
   <a href="https://nextus.world/about.html">About</a>
   <a href="https://nextus.world/podcast.html">Podcast</a>
-  <a href="https://nextus.world/login.html">Sign in →</a>
+  <a href="https://nextus.world/login.html">Sign in &#8594;</a>
 </div>
 
 <div class="save-toast" id="saveToast">Saved</div>

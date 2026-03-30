@@ -60,7 +60,7 @@ Return JSON only:
 }
 
 // ── PHASE 2: GOAL REFINEMENT CONVERSATION ────────────────────────────────────
-function buildPhase2System(domain, domainScore, currentScore, targetDate, completedDomains) {
+function buildPhase2System(domain, domainScore, currentScore, targetDate, completedDomains, horizonCurrent, horizonGap) {
   const domainLabel = DOMAINS[domain]?.label || domain;
   const priorContext = completedDomains.length > 0
     ? `\n\nCONTEXT FROM PREVIOUS DOMAINS:\n${completedDomains.map(d =>
@@ -68,11 +68,15 @@ function buildPhase2System(domain, domainScore, currentScore, targetDate, comple
       ).join('\n')}`
     : '';
 
+  const horizonContext = (horizonCurrent || horizonGap)
+    ? `\n\nHORIZON GAP (what they wrote before this conversation):\nCurrent reality: "${horizonCurrent || 'not provided'}"\nWhat\'s in the way: "${horizonGap || 'not provided'}"\n\nUse this as context — don't repeat it back to them verbatim, but let it inform the depth of your questions and specificity of your challenges.`
+    : '';
+
   return `You are helping someone set a meaningful 90-day Target Goal for their ${domainLabel} domain. You are a thinking partner — warm, direct, and honest.
 
 THEIR CURRENT STATE: ${currentScore}/10 in ${domainLabel}. ${domainScore ? `The Map shows: "${domainScore}"` : ''}
 TARGET DATE: ${targetDate}
-${priorContext}
+${priorContext}${horizonContext}
 
 YOUR JOB IN THIS CONVERSATION:
 You help them arrive at a goal that is specific, honest, and reachable — but also meaningful. Not a box to tick. A direction that, when they move toward it, they actually change.
@@ -93,8 +97,11 @@ When the goal feels solid (usually 3-5 exchanges), output this JSON:
   "ready": true,
   "outcome_system": "The goal as you'd state it — specific, honest, reachable, humanity built in",
   "month3": "What needs to be true at end of month 3",
+  "month3_why": "One sentence — why this month matters, what it unlocks",
   "month2": "What needs to be true at end of month 2 for month 3 to be reachable",
+  "month2_why": "One sentence — why this month matters",
   "month1": "What needs to be true at end of month 1 for month 2 to be reachable",
+  "month1_why": "One sentence — why this month is the right foundation",
   "weeks": ["Week 1 focus", "Week 2 focus", "Week 3 focus", "Week 4 focus"],
   "tea": {
     "thoughts": "A daily thought anchor — what to notice or return to",
@@ -114,7 +121,8 @@ module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const { mode, scores, hasMapData, domain, domainScore, currentScore,
-          targetDate, messages, completedDomains } = req.body || {};
+          targetDate, messages, completedDomains,
+          horizonCurrent, horizonGap } = req.body || {};
 
   try {
     // ── Mode: recommend domains ───────────────────────────────────────────────
@@ -127,7 +135,8 @@ module.exports = async (req, res) => {
     if (mode === "refine") {
       const system = buildPhase2System(
         domain, domainScore, currentScore,
-        targetDate, completedDomains || []
+        targetDate, completedDomains || [],
+        horizonCurrent || null, horizonGap || null
       );
 
       // Replace the START trigger with a proper opening prompt
